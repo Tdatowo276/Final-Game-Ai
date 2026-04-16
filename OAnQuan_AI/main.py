@@ -6,12 +6,12 @@ from src.renderer import init_renderer, draw_button, draw_interface_game, get_ce
 from constants import WIDTH, HEIGHT, FPS, BG_COLOR
 
 
-def draw_rules_screen(screen):
+def draw_rules_screen(screen, font_title, font_body):
     screen.fill(BG_COLOR)
-    font_title = pygame.font.SysFont("Arial", 40, bold=True)
-    font_body = pygame.font.SysFont("Arial", 22)
+    width = screen.get_width()
+    height = screen.get_height()
     title = font_title.render("LUẬT CHƠI Ô ĂN QUAN", True, (80, 70, 60))
-    screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 80))
+    screen.blit(title, (width // 2 - title.get_width() // 2, 80))
 
     rules = [
         "- Mỗi bên có 5 ô nhỏ tương ứng với 5 ô dân, 2 ô quan lớn ở hai đầu.",
@@ -31,7 +31,7 @@ def draw_rules_screen(screen):
         screen.blit(text, (80, y))
         y += 36
 
-    back_rect = pygame.Rect(WIDTH // 2 - 120, HEIGHT - 120, 240, 50)
+    back_rect = pygame.Rect(width // 2 - 120, height - 120, 240, 50)
     pygame.draw.rect(screen, (120, 110, 100), back_rect, border_radius=12)
     back_text = font_body.render("TRỞ VỀ MENU", True, (255, 255, 255))
     screen.blit(back_text, (back_rect.centerx - back_text.get_width() // 2, back_rect.centery - back_text.get_height() // 2))
@@ -43,99 +43,133 @@ def main():
     pygame.init()
     init_audio()
     play_bgm()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
     pygame.display.set_caption("Ô ĂN QUAN AI - Nhóm 14")
     clock = pygame.time.Clock()
     init_renderer()
+
+    font_menu_title = pygame.font.SysFont("Arial", 45, bold=True)
+    font_rules_title = pygame.font.SysFont("Arial", 40, bold=True)
+    font_rules_body = pygame.font.SysFont("Arial", 22)
+    font_status = pygame.font.SysFont("Arial", 22, bold=True)
 
     game_state = 0
     ai_difficulty = 3
     is_pvp = False
     board_state = BoardState.new()
-    rects = get_cell_rects()
+    move_step_delay = 300 # co the tang hoac giam toc do rai quan tai day
+    player_turn_count = 0
+    ai_turn_count = 0
 
-    def render_frame():
-        draw_interface_game(screen, board_state, is_pvp)
+    def delay(milliseconds):
+        nonlocal running
+        target_time = pygame.time.get_ticks() + milliseconds
+        while running and pygame.time.get_ticks() < target_time:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+            clock.tick(FPS)
+
+    def render_frame(extra_delay: int = 0, left_status: str | None = None, right_status: str | None = None):
+        draw_interface_game(screen, board_state, is_pvp, left_status, right_status)
         pygame.display.flip()
-        pygame.time.wait(180)
+        clock.tick(FPS)
+        if extra_delay > 0:
+            delay(extra_delay)
 
-    def sound_and_render():
+    def sound_and_render(left_status: str | None = None, right_status: str | None = None):
         play_move_sound()
-        render_frame()
+        render_frame(move_step_delay, left_status, right_status)
 
     running = True
     while running:
         if game_state == 0:
             screen.fill(BG_COLOR)
-            title = pygame.font.SysFont("Arial", 45, bold=True).render("Ô ĂN QUAN AI", True, (80, 70, 60))
-            screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 150))
-            if draw_button(screen, "NGƯỜI VS NGƯỜI", WIDTH // 2 - 150, 300, 300, 60, (120, 110, 100), (180, 170, 160)):
+            width = screen.get_width()
+            title = font_menu_title.render("Ô ĂN QUAN AI", True, (80, 70, 60))
+            screen.blit(title, (width // 2 - title.get_width() // 2, 150))
+            if draw_button(screen, "NGƯỜI VS NGƯỜI", width // 2 - 150, 300, 300, 60, (120, 110, 100), (180, 170, 160)):
                 is_pvp = True
                 board_state.reset()
                 game_state = 2
-                pygame.time.wait(200)
-            if draw_button(screen, "NGƯỜI VS MÁY", WIDTH // 2 - 150, 400, 300, 60, (120, 110, 100), (180, 170, 160)):
+                delay(200)
+            if draw_button(screen, "NGƯỜI VS MÁY", width // 2 - 150, 400, 300, 60, (120, 110, 100), (180, 170, 160)):
                 is_pvp = False
                 game_state = 1
-                pygame.time.wait(200)
-            if draw_button(screen, "LUẬT CHƠI", WIDTH // 2 - 150, 500, 300, 60, (100, 140, 200), (120, 170, 220)):
+                delay(200)
+            if draw_button(screen, "LUẬT CHƠI", width // 2 - 150, 500, 300, 60, (100, 140, 200), (120, 170, 220)):
                 game_state = 4
-                pygame.time.wait(200)
+                delay(200)
 
         elif game_state == 1:
             screen.fill(BG_COLOR)
-            title = pygame.font.SysFont("Arial", 45, bold=True).render("CHỌN MỨC ĐỘ", True, (80, 70, 60))
-            screen.blit(title, (WIDTH // 2 - title.get_width() // 2, 150))
-            if draw_button(screen, "DỄ (AI NON NỚT)", WIDTH // 2 - 150, 280, 300, 50, (100, 180, 100), (120, 200, 120)):
+            width = screen.get_width()
+            title = font_menu_title.render("CHỌN MỨC ĐỘ", True, (80, 70, 60))
+            screen.blit(title, (width // 2 - title.get_width() // 2, 150))
+            if draw_button(screen, "DỄ (AI NON NỚT)", width // 2 - 150, 280, 300, 50, (100, 180, 100), (120, 200, 120)):
                 ai_difficulty = 1
                 board_state.reset()
                 game_state = 3
-                pygame.time.wait(200)
-            if draw_button(screen, "KHÓ (AI CÂN TẤT)", WIDTH // 2 - 150, 360, 300, 50, (200, 150, 50), (220, 170, 70)):
+                delay(200)
+            if draw_button(screen, "KHÓ (AI CÂN TẤT)", width // 2 - 150, 360, 300, 50, (200, 150, 50), (220, 170, 70)):
                 ai_difficulty = 3
                 board_state.reset()
                 game_state = 3
-                pygame.time.wait(200)
-            if draw_button(screen, "SIÊU KHÓ (MASTER)", WIDTH // 2 - 150, 440, 300, 50, (180, 50, 50), (200, 70, 70)):
+                delay(200)
+            if draw_button(screen, "SIÊU KHÓ (MASTER)", width // 2 - 150, 440, 300, 50, (180, 50, 50), (200, 70, 70)):
                 ai_difficulty = 5
                 board_state.reset()
                 game_state = 3
-                pygame.time.wait(200)
-            if draw_button(screen, "BACK", WIDTH // 2 - 150, 520, 300, 50, (100, 100, 100), (150, 150, 150)):
+                delay(200)
+            if draw_button(screen, "BACK", width // 2 - 150, 520, 300, 50, (100, 100, 100), (150, 150, 150)):
                 game_state = 0
-                pygame.time.wait(200)
+                delay(200)
 
         elif game_state == 4:
-            back_rect = draw_rules_screen(screen)
-            if draw_button(screen, "THOÁT", 20, 20, 100, 40, (150, 70, 70), (180, 90, 90)):
-                game_state = 0
-                pygame.time.wait(200)
+            back_rect = draw_rules_screen(screen, font_rules_title, font_rules_body)
             if back_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0] == 1:
                 game_state = 0
-                pygame.time.wait(200)
+                delay(200)
         elif game_state in [2, 3]:
-            btn_l, btn_r = draw_interface_game(screen, board_state, is_pvp)
-            if draw_button(screen, "THOÁT", 20, 20, 100, 40, (150, 70, 70), (180, 90, 90)):
+            left_status = None
+            right_status = None
+            if game_state == 3 and not is_pvp:
+                left_status = f"Bạn: {player_turn_count} lượt"
+                right_status = f"AI: {ai_turn_count} lượt"
+                if board_state.current_player == 0:
+                    left_status += " - Tới lượt của bạn"
+                else:
+                    right_status += " - Tới lượt của AI"
+
+            btn_l, btn_r = draw_interface_game(screen, board_state, is_pvp, left_status, right_status)
+            if draw_button(screen, "THOÁT", 20, 70, 100, 40, (150, 70, 70), (180, 90, 90)):
                 game_state = 0
-                pygame.time.wait(200)
+                delay(200)
 
             if game_state == 3 and board_state.current_player == 1 and not board_state.is_animating and not board_state.game_over:
-                pygame.display.flip()
-                pygame.time.wait(800)
+                delay(500)
                 ai_idx, ai_dir = choose_ai_move(board_state.board, board_state.score, ai_difficulty)
                 if ai_idx is not None:
-                    board_state.apply_move(ai_idx, ai_dir, sound_and_render)
+                    board_state.apply_move(ai_idx, ai_dir, lambda: sound_and_render(left_status, right_status))
+                    ai_turn_count += 1
 
+        rects = get_cell_rects()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            if event.type == pygame.MOUSEBUTTONDOWN and not board_state.is_animating and not board_state.game_over:
+            elif event.type == pygame.VIDEORESIZE:
+                screen = pygame.display.set_mode((event.w, event.h), pygame.RESIZABLE)
+            elif event.type == pygame.MOUSEBUTTONDOWN and not board_state.is_animating and not board_state.game_over:
                 pos = pygame.mouse.get_pos()
                 if game_state in [2, 3]:
                     if btn_l and btn_l.collidepoint(pos):
-                        board_state.apply_move(board_state.selected_index, -1, sound_and_render)
+                        board_state.apply_move(board_state.selected_index, -1, lambda: sound_and_render(left_status, right_status))
+                        if game_state == 3 and not is_pvp:
+                            player_turn_count += 1
                     elif btn_r and btn_r.collidepoint(pos):
-                        board_state.apply_move(board_state.selected_index, 1, sound_and_render)
+                        board_state.apply_move(board_state.selected_index, 1, lambda: sound_and_render(left_status, right_status))
+                        if game_state == 3 and not is_pvp:
+                            player_turn_count += 1
                     else:
                         v_range = range(1, 6) if board_state.current_player == 0 else range(7, 12)
                         if game_state == 3 and board_state.current_player == 1:

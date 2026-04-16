@@ -5,12 +5,18 @@ from src.board import BoardState
 
 FONT_MAIN = None
 FONT_SUB = None
+FONT_SMALL = None
+FONT_SCORE = None
+FONT_BUTTON = None
 
 
 def init_renderer():
-    global FONT_MAIN, FONT_SUB
+    global FONT_MAIN, FONT_SUB, FONT_SMALL, FONT_SCORE, FONT_BUTTON
     FONT_MAIN = pygame.font.SysFont("Arial", 45, bold=True)
     FONT_SUB = pygame.font.SysFont("Arial", 25, bold=True)
+    FONT_SMALL = pygame.font.SysFont("Verdana", 14, bold=True)
+    FONT_SCORE = pygame.font.SysFont("Arial", 22, bold=True)
+    FONT_BUTTON = pygame.font.SysFont("Arial", 20, bold=True)
 
 
 def draw_button(screen, text, x, y, w, h, inactive_color, active_color):
@@ -41,7 +47,7 @@ def get_cell_rects():
     return rects
 
 
-def draw_interface_game(screen, board_state: BoardState, is_pvp: bool):
+def draw_interface_game(screen, board_state: BoardState, is_pvp: bool, left_status: str | None = None, right_status: str | None = None):
     screen.fill(BG_COLOR)
     rects = get_cell_rects()
     pygame.draw.rect(screen, BOARD_BORDER, (rects[0].x, rects[0].y, 700, 200), 2, border_radius=25)
@@ -52,7 +58,7 @@ def draw_interface_game(screen, board_state: BoardState, is_pvp: bool):
         if i == board_state.current_hand_pos:
             pygame.draw.rect(screen, HAND_COLOR, rects[i].inflate(-2, -2), 4, border_radius=10)
 
-        txt = pygame.font.SysFont("Verdana", 14, bold=True).render(str(board_state.board[i]), True, TEXT_COLOR)
+        txt = FONT_SMALL.render(str(board_state.board[i]), True, TEXT_COLOR)
         screen.blit(txt, (rects[i].x + 8, rects[i].y + 8))
 
         if i in (0, 6) and board_state.board[i] >= 10:
@@ -67,14 +73,37 @@ def draw_interface_game(screen, board_state: BoardState, is_pvp: bool):
         if i != 0 and i != 6:
             pygame.draw.rect(screen, BOARD_BORDER, rects[i], 1)
 
-    font_s = pygame.font.SysFont("Arial", 22, bold=True)
+    screen_width = pygame.display.get_surface().get_width()
+    screen_height = pygame.display.get_surface().get_height()
+
+    left_score_surf = FONT_SCORE.render(f"NGƯỜI 1 (P1): {board_state.score[0]}", True, (50, 50, 150))
+    left_score_pos = (50, screen_height - 60)
+    screen.blit(left_score_surf, left_score_pos)
+
     p2_label = "MÁY (P2)" if not is_pvp else "NGƯỜI 2 (P2)"
-    screen.blit(font_s.render(f"NGƯỜI 1 (P1): {board_state.score[0]}", True, (50, 50, 150)), (50, pygame.display.get_surface().get_height() - 60))
-    screen.blit(font_s.render(f"{p2_label}: {board_state.score[1]}", True, (150, 50, 50)), (pygame.display.get_surface().get_width() - 300, 40))
+    right_score_surf = FONT_SCORE.render(f"{p2_label}: {board_state.score[1]}", True, (150, 50, 50))
+    right_score_pos = (screen_width - 50 - right_score_surf.get_width(), 40)
+    screen.blit(right_score_surf, right_score_pos)
+
+    if left_status:
+        left_status_surf = FONT_SMALL.render(left_status, True, (60, 60, 60))
+        left_status_rect = left_status_surf.get_rect(topleft=(left_score_pos[0] + left_score_surf.get_width() + 16, left_score_pos[1] + 2))
+        bg_rect = pygame.Rect(left_status_rect.x - 6, left_status_rect.y - 4, left_status_rect.width + 12, left_status_rect.height + 8)
+        pygame.draw.rect(screen, (248, 248, 248), bg_rect, border_radius=10)
+        pygame.draw.rect(screen, (190, 190, 190), bg_rect, 1, border_radius=10)
+        screen.blit(left_status_surf, left_status_rect)
+
+    if right_status:
+        right_status_surf = FONT_SMALL.render(right_status, True, (60, 60, 60))
+        right_status_rect = right_status_surf.get_rect(topright=(screen_width - 50, right_score_pos[1] + 2))
+        bg_rect = pygame.Rect(right_status_rect.x - 6, right_status_rect.y - 4, right_status_rect.width + 12, right_status_rect.height + 8)
+        pygame.draw.rect(screen, (248, 248, 248), bg_rect, border_radius=10)
+        pygame.draw.rect(screen, (190, 190, 190), bg_rect, 1, border_radius=10)
+        screen.blit(right_status_surf, right_status_rect)
 
     if board_state.game_over:
         msg = "HÒA!" if board_state.score[0] == board_state.score[1] else ("BẠN THẮNG!" if board_state.score[0] > board_state.score[1] else f"{p2_label} THẮNG!")
-        txt = font_s.render(f"KẾT THÚC: {msg}", True, (200, 0, 0))
+        txt = FONT_SCORE.render(f"KẾT THÚC: {msg}", True, (200, 0, 0))
         screen.blit(txt, (pygame.display.get_surface().get_width() // 2 - txt.get_width() // 2, pygame.display.get_surface().get_height() - 100))
 
     left_btn = None
@@ -85,8 +114,7 @@ def draw_interface_game(screen, board_state: BoardState, is_pvp: bool):
         right_btn = pygame.Rect(r.centerx + 5, r.centery - 15, 40, 30)
         pygame.draw.rect(screen, BTN_COLOR, left_btn, border_radius=5)
         pygame.draw.rect(screen, BTN_COLOR, right_btn, border_radius=5)
-        font_btn = pygame.font.SysFont("Arial", 20, bold=True)
-        screen.blit(font_btn.render("<", True, (255, 255, 255)), (left_btn.centerx - 7, left_btn.centery - 12))
-        screen.blit(font_btn.render(">", True, (255, 255, 255)), (right_btn.centerx - 7, right_btn.centery - 12))
+        screen.blit(FONT_BUTTON.render("<", True, (255, 255, 255)), (left_btn.centerx - 7, left_btn.centery - 12))
+        screen.blit(FONT_BUTTON.render(">", True, (255, 255, 255)), (right_btn.centerx - 7, right_btn.centery - 12))
 
     return left_btn, right_btn

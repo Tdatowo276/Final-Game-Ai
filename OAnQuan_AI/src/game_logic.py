@@ -1,3 +1,4 @@
+import functools
 from typing import List, Optional, Tuple
 
 
@@ -46,37 +47,44 @@ def simulate_move(curr_board: List[int], curr_scores: List[int], start_idx: int,
     return temp_b, temp_s
 
 
-def minimax(board: List[int], scores: List[int], depth: int, alpha: float, beta: float, is_max: bool) -> Tuple[float, Optional[int], Optional[int]]:
+def _evaluate_position(board: List[int], scores: List[int]) -> float:
+    material_balance = sum(board[7:12]) - sum(board[1:6])
+    return (scores[1] - scores[0]) + material_balance * 0.1
+
+
+@functools.lru_cache(maxsize=None)
+def _cached_minimax(board_tuple: tuple[int, ...], scores_tuple: tuple[int, int], depth: int, is_max: bool) -> Tuple[float, Optional[int], Optional[int]]:
+    board = list(board_tuple)
+    scores = list(scores_tuple)
+
     if depth == 0 or (board[0] == 0 and board[6] == 0):
-        return scores[1] - scores[0], None, None
+        return _evaluate_position(board, scores), None, None
 
     player_idx = 1 if is_max else 0
     moves = get_valid_moves(board, player_idx)
     if not moves:
-        return scores[1] - scores[0], None, None
+        return _evaluate_position(board, scores), None, None
 
     best_move = (None, None)
     if is_max:
         max_eval = float("-inf")
         for start_idx, direction in moves:
             next_board, next_scores = simulate_move(board, scores, start_idx, direction, player_idx)
-            eval_score, _, _ = minimax(next_board, next_scores, depth - 1, alpha, beta, False)
+            eval_score, _, _ = _cached_minimax(tuple(next_board), tuple(next_scores), depth - 1, False)
             if eval_score > max_eval:
                 max_eval = eval_score
                 best_move = (start_idx, direction)
-            alpha = max(alpha, eval_score)
-            if beta <= alpha:
-                break
         return max_eval, best_move[0], best_move[1]
 
     min_eval = float("inf")
     for start_idx, direction in moves:
         next_board, next_scores = simulate_move(board, scores, start_idx, direction, player_idx)
-        eval_score, _, _ = minimax(next_board, next_scores, depth - 1, alpha, beta, True)
+        eval_score, _, _ = _cached_minimax(tuple(next_board), tuple(next_scores), depth - 1, True)
         if eval_score < min_eval:
             min_eval = eval_score
             best_move = (start_idx, direction)
-        beta = min(beta, eval_score)
-        if beta <= alpha:
-            break
     return min_eval, best_move[0], best_move[1]
+
+
+def minimax(board: List[int], scores: List[int], depth: int, alpha: float, beta: float, is_max: bool) -> Tuple[float, Optional[int], Optional[int]]:
+    return _cached_minimax(tuple(board), tuple(scores), depth, is_max)
