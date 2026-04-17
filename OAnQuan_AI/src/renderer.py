@@ -95,7 +95,7 @@ def draw_interface_game(screen, board_state: BoardState, is_pvp: bool, left_stat
 
     if right_status:
         right_status_surf = FONT_SMALL.render(right_status, True, (60, 60, 60))
-        right_status_rect = right_status_surf.get_rect(topright=(screen_width - 50, right_score_pos[1] + 2))
+        right_status_rect = right_status_surf.get_rect(topright=(right_score_pos[0] - 16, right_score_pos[1] + 2))
         bg_rect = pygame.Rect(right_status_rect.x - 6, right_status_rect.y - 4, right_status_rect.width + 12, right_status_rect.height + 8)
         pygame.draw.rect(screen, (248, 248, 248), bg_rect, border_radius=10)
         pygame.draw.rect(screen, (190, 190, 190), bg_rect, 1, border_radius=10)

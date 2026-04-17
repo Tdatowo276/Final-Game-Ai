@@ -1,7 +1,8 @@
 import pygame
 from src.board import BoardState
 from src.ai_engine import choose_ai_move
-from src.audio import init_audio, play_bgm, play_move_sound
+import src.audio as audio
+from src.audio import init_audio, play_bgm, play_move_sound, adjust_bgm_volume, cycle_sfx, get_current_sfx_name
 from src.renderer import init_renderer, draw_button, draw_interface_game, get_cell_rects
 from constants import WIDTH, HEIGHT, FPS, BG_COLOR
 
@@ -10,7 +11,7 @@ def draw_rules_screen(screen, font_title, font_body):
     screen.fill(BG_COLOR)
     width = screen.get_width()
     height = screen.get_height()
-    title = font_title.render("LUẬT CHƠI Ô ĂN QUAN", True, (80, 70, 60))
+    title = font_title.render("RULES", True, (80, 70, 60))
     screen.blit(title, (width // 2 - title.get_width() // 2, 80))
 
     rules = [
@@ -33,7 +34,7 @@ def draw_rules_screen(screen, font_title, font_body):
 
     back_rect = pygame.Rect(width // 2 - 120, height - 120, 240, 50)
     pygame.draw.rect(screen, (120, 110, 100), back_rect, border_radius=12)
-    back_text = font_body.render("TRỞ VỀ MENU", True, (255, 255, 255))
+    back_text = font_body.render("BACK", True, (255, 255, 255))
     screen.blit(back_text, (back_rect.centerx - back_text.get_width() // 2, back_rect.centery - back_text.get_height() // 2))
     return back_rect
 
@@ -88,35 +89,42 @@ def main():
             width = screen.get_width()
             title = font_menu_title.render("Ô ĂN QUAN AI", True, (80, 70, 60))
             screen.blit(title, (width // 2 - title.get_width() // 2, 150))
-            if draw_button(screen, "NGƯỜI VS NGƯỜI", width // 2 - 150, 300, 300, 60, (120, 110, 100), (180, 170, 160)):
+            if draw_button(screen, "PLAYER VS PLAYER", width // 2 - 150, 270, 300, 60, (120, 110, 100), (180, 170, 160)):
                 is_pvp = True
                 board_state.reset()
+                player_turn_count = 0
+                ai_turn_count = 0
                 game_state = 2
                 delay(200)
-            if draw_button(screen, "NGƯỜI VS MÁY", width // 2 - 150, 400, 300, 60, (120, 110, 100), (180, 170, 160)):
+            if draw_button(screen, "PLAYER VS AI", width // 2 - 150, 360, 300, 60, (120, 110, 100), (180, 170, 160)):
                 is_pvp = False
+                player_turn_count = 0
+                ai_turn_count = 0
                 game_state = 1
                 delay(200)
-            if draw_button(screen, "LUẬT CHƠI", width // 2 - 150, 500, 300, 60, (100, 140, 200), (120, 170, 220)):
+            if draw_button(screen, "RULES", width // 2 - 150, 450, 300, 60, (100, 140, 200), (120, 170, 220)):
                 game_state = 4
+                delay(200)
+            if draw_button(screen, "SETTINGS", width // 2 - 150, 540, 300, 60, (100, 140, 200), (120, 170, 220)):
+                game_state = 5
                 delay(200)
 
         elif game_state == 1:
             screen.fill(BG_COLOR)
             width = screen.get_width()
-            title = font_menu_title.render("CHỌN MỨC ĐỘ", True, (80, 70, 60))
+            title = font_menu_title.render("CHOOSE DIFFICULTY", True, (80, 70, 60))
             screen.blit(title, (width // 2 - title.get_width() // 2, 150))
-            if draw_button(screen, "DỄ (AI NON NỚT)", width // 2 - 150, 280, 300, 50, (100, 180, 100), (120, 200, 120)):
+            if draw_button(screen, "EASY", width // 2 - 150, 280, 300, 50, (100, 180, 100), (120, 200, 120)):
                 ai_difficulty = 1
                 board_state.reset()
                 game_state = 3
                 delay(200)
-            if draw_button(screen, "KHÓ (AI CÂN TẤT)", width // 2 - 150, 360, 300, 50, (200, 150, 50), (220, 170, 70)):
+            if draw_button(screen, "MEDIUM", width // 2 - 150, 360, 300, 50, (200, 150, 50), (220, 170, 70)):
                 ai_difficulty = 3
                 board_state.reset()
                 game_state = 3
                 delay(200)
-            if draw_button(screen, "SIÊU KHÓ (MASTER)", width // 2 - 150, 440, 300, 50, (180, 50, 50), (200, 70, 70)):
+            if draw_button(screen, "HARD", width // 2 - 150, 440, 300, 50, (180, 50, 50), (200, 70, 70)):
                 ai_difficulty = 5
                 board_state.reset()
                 game_state = 3
@@ -130,19 +138,53 @@ def main():
             if back_rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0] == 1:
                 game_state = 0
                 delay(200)
+
+        elif game_state == 5:
+            screen.fill(BG_COLOR)
+            width = screen.get_width()
+            title = font_rules_title.render("SETTINGS", True, (80, 70, 60))
+            screen.blit(title, (width // 2 - title.get_width() // 2, 150))
+            
+            vol_percent = int(audio.bgm_volume * 100)
+            vol_text = f"VOLUME: {vol_percent}%"
+            # Draw volume display (middle)
+            draw_button(screen, vol_text, width // 2 - 75, 270, 150, 60, (120, 110, 100), (120, 110, 100))
+            # Draw Minus button
+            if draw_button(screen, "-", width // 2 - 175, 270, 80, 60, (200, 100, 100), (220, 120, 120)):
+                adjust_bgm_volume(-0.1)
+                delay(150)
+            # Draw Plus button
+            if draw_button(screen, "+", width // 2 + 95, 270, 80, 60, (100, 200, 100), (120, 220, 120)):
+                adjust_bgm_volume(0.1)
+                delay(150)
+                
+            sfx_name = get_current_sfx_name()
+            sfx_text = f"EFFECTS: {sfx_name}"
+            if draw_button(screen, sfx_text, width // 2 - 175, 360, 350, 60, (120, 110, 100), (180, 170, 160)):
+                cycle_sfx()
+                play_move_sound() # Play sound to preview
+                delay(200)
+
+            if draw_button(screen, "BACK", width // 2 - 175, 450, 350, 60, (100, 140, 200), (120, 170, 220)):
+                game_state = 0
+                delay(200)
         elif game_state in [2, 3]:
             left_status = None
             right_status = None
-            if game_state == 3 and not is_pvp:
-                left_status = f"Bạn: {player_turn_count} lượt"
-                right_status = f"AI: {ai_turn_count} lượt"
-                if board_state.current_player == 0:
-                    left_status += " - Tới lượt của bạn"
-                else:
-                    right_status += " - Tới lượt của AI"
+            
+            p1_label = "P1"
+            p2_label = "P2" if is_pvp else "AI"
+            
+            left_status = f"{p1_label}: {player_turn_count} turns"
+            right_status = f"{p2_label}: {ai_turn_count} turns"
+            
+            if board_state.current_player == 0:
+                left_status += " - Your turn"
+            else:
+                right_status += " - Your turn"
 
             btn_l, btn_r = draw_interface_game(screen, board_state, is_pvp, left_status, right_status)
-            if draw_button(screen, "THOÁT", 20, 70, 100, 40, (150, 70, 70), (180, 90, 90)):
+            if draw_button(screen, "EXIT", 20, 70, 100, 40, (150, 70, 70), (180, 90, 90)):
                 game_state = 0
                 delay(200)
 
@@ -164,12 +206,18 @@ def main():
                 if game_state in [2, 3]:
                     if btn_l and btn_l.collidepoint(pos):
                         board_state.apply_move(board_state.selected_index, -1, lambda: sound_and_render(left_status, right_status))
-                        if game_state == 3 and not is_pvp:
+                        if board_state.current_player == 1: # After apply_move, player already swapped in some implementations, but here apply_move might be async or inside. 
+                                                           # Actually current_player is swapped AFTER animation usually or inside apply_move.
+                                                           # Let's check BoardState.apply_move
                             player_turn_count += 1
+                        else:
+                            ai_turn_count += 1
                     elif btn_r and btn_r.collidepoint(pos):
                         board_state.apply_move(board_state.selected_index, 1, lambda: sound_and_render(left_status, right_status))
-                        if game_state == 3 and not is_pvp:
+                        if board_state.current_player == 1:
                             player_turn_count += 1
+                        else:
+                            ai_turn_count += 1
                     else:
                         v_range = range(1, 6) if board_state.current_player == 0 else range(7, 12)
                         if game_state == 3 and board_state.current_player == 1:

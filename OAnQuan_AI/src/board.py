@@ -69,8 +69,19 @@ class BoardState:
                 render_callback()
 
         while True:
+            # 1. Nếu hạt cuối rơi vào ô Quan (0 hoặc 6) -> Dừng lượt
+            if pos in (0, 6):
+                break
+            
             next_pos = (pos + actual_dir) % 12
-            if self.board[next_pos] > 0 and next_pos not in (0, 6):
+            
+            # 2. Nếu ô tiếp theo là ô Quan -> Dừng lượt (không được bốc quân từ ô Quan)
+            if next_pos in (0, 6):
+                break
+            
+            # 3. Phân nhánh: Ô tiếp theo có quân hay không?
+            if self.board[next_pos] > 0:
+                # Bốc quân rải tiếp (vì không phải ô Quan và có quân)
                 hand = self.board[next_pos]
                 self.board[next_pos] = 0
                 pos = next_pos
@@ -81,19 +92,32 @@ class BoardState:
                     hand -= 1
                     if render_callback:
                         render_callback()
-                continue
-
-            if self.board[next_pos] == 0:
-                target = (next_pos + actual_dir) % 12
-                if self.board[target] > 0:
-                    self.score[self.current_player] += self.board[target]
-                    self.board[target] = 0
-                    self.current_hand_pos = target
-                    if render_callback:
-                        render_callback()
-                break
-
-            break
+                continue  # Quay lại kiểm tra sau khi rải xong nắm quân mới
+            else:
+                # Ô tiếp theo trống -> Kiểm tra ô sau nó để ăn quân
+                while True:
+                    empty_pos = next_pos
+                    target_pos = (empty_pos + actual_dir) % 12
+                    
+                    if self.board[target_pos] > 0:
+                        # ĂN QUÂN
+                        self.score[self.current_player] += self.board[target_pos]
+                        self.board[target_pos] = 0
+                        self.current_hand_pos = target_pos
+                        if render_callback:
+                            render_callback()
+                        
+                        # KIỂM TRA ĂN CHUỖI: Ô tiếp sau ô vừa ăn phải trống thì mới được ăn tiếp ô sau nữa
+                        next_empty_pos = (target_pos + actual_dir) % 12
+                        if self.board[next_empty_pos] == 0:
+                            next_pos = next_empty_pos
+                            continue # Lặp lại để kiểm tra ăn ô tiếp theo
+                        else:
+                            break # Ô sau ô vừa ăn có quân -> Dừng
+                    else:
+                        # Ô sau ô trống cũng trống -> Hai ô trống liên tiếp -> Dừng
+                        break
+                break # Kết thúc chuỗi ăn quân hoặc dừng do 2 ô trống
 
         self.current_hand_pos = -1
         self.selected_index = -1

@@ -24,8 +24,15 @@ def simulate_move(curr_board: List[int], curr_scores: List[int], start_idx: int,
         hand -= 1
 
     while True:
+        if pos in (0, 6):
+            break
+
         next_pos = (pos + actual_dir) % 12
-        if temp_b[next_pos] > 0 and next_pos not in (0, 6):
+        
+        if next_pos in (0, 6):
+            break
+
+        if temp_b[next_pos] > 0:
             hand = temp_b[next_pos]
             temp_b[next_pos] = 0
             pos = next_pos
@@ -34,15 +41,24 @@ def simulate_move(curr_board: List[int], curr_scores: List[int], start_idx: int,
                 temp_b[pos] += 1
                 hand -= 1
             continue
-
-        if temp_b[next_pos] == 0:
-            target = (next_pos + actual_dir) % 12
-            if temp_b[target] > 0:
-                temp_s[player_idx] += temp_b[target]
-                temp_b[target] = 0
+        else:
+            while True:
+                empty_pos = next_pos
+                target_pos = (empty_pos + actual_dir) % 12
+                
+                if temp_b[target_pos] > 0:
+                    temp_s[player_idx] += temp_b[target_pos]
+                    temp_b[target_pos] = 0
+                    
+                    next_empty_pos = (target_pos + actual_dir) % 12
+                    if temp_b[next_empty_pos] == 0:
+                        next_pos = next_empty_pos
+                        continue
+                    else:
+                        break
+                else:
+                    break
             break
-
-        break
 
     return temp_b, temp_s
 
