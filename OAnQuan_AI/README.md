@@ -4,7 +4,7 @@ Phiên bản `OAnQuan_AI` là một game Ô Ăn Quan với chế độ PvP và P
 
 ## Chạy game
 
-1. Mở terminal tại thư mục `ProjectGameOAnQuan/OAnQuan_AI`
+1. Mở terminal tại thư mục `OAnQuan_AI`
 2. Tạo môi trường ảo (tuỳ chọn):
    ```bash
    python -m venv .venv
