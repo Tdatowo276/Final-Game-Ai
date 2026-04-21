@@ -27,7 +27,7 @@ def draw_button(screen, text, x, y, w, h, inactive_color, active_color):
     color = active_color if is_hover else inactive_color
     pygame.draw.rect(screen, color, rect, border_radius=12)
 
-    txt_surf = FONT_SUB.render(text, True, (255, 255, 255))
+    txt_surf = FONT_BUTTON.render(text, True, (255, 255, 255))
     txt_rect = txt_surf.get_rect(center=rect.center)
     screen.blit(txt_surf, txt_rect)
     return is_hover and click[0] == 1

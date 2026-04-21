@@ -45,7 +45,7 @@ def main():
     init_audio()
     play_bgm()
     screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
-    pygame.display.set_caption("Ô ĂN QUAN AI - Nhóm 14")
+    pygame.display.set_caption("O AN QUAN AI - TEAM 14")
     clock = pygame.time.Clock()
     init_renderer()
 
@@ -87,7 +87,7 @@ def main():
         if game_state == 0:
             screen.fill(BG_COLOR)
             width = screen.get_width()
-            title = font_menu_title.render("Ô ĂN QUAN AI", True, (80, 70, 60))
+            title = font_menu_title.render("O AN QUAN AI", True, (80, 70, 60))
             screen.blit(title, (width // 2 - title.get_width() // 2, 150))
             if draw_button(screen, "PLAYER VS PLAYER", width // 2 - 150, 270, 300, 60, (120, 110, 100), (180, 170, 160)):
                 is_pvp = True
@@ -148,13 +148,13 @@ def main():
             vol_percent = int(audio.bgm_volume * 100)
             vol_text = f"VOLUME: {vol_percent}%"
             # Draw volume display (middle)
-            draw_button(screen, vol_text, width // 2 - 75, 270, 150, 60, (120, 110, 100), (120, 110, 100))
+            draw_button(screen, vol_text, width // 2 - 95, 270, 190, 60, (120, 110, 100), (120, 110, 100))
             # Draw Minus button
-            if draw_button(screen, "-", width // 2 - 175, 270, 80, 60, (200, 100, 100), (220, 120, 120)):
+            if draw_button(screen, "-", width // 2 - 180, 270, 70, 60, (200, 100, 100), (220, 120, 120)):
                 adjust_bgm_volume(-0.1)
                 delay(150)
             # Draw Plus button
-            if draw_button(screen, "+", width // 2 + 95, 270, 80, 60, (100, 200, 100), (120, 220, 120)):
+            if draw_button(screen, "+", width // 2 + 110, 270, 70, 60, (100, 200, 100), (120, 220, 120)):
                 adjust_bgm_volume(0.1)
                 delay(150)
                 
