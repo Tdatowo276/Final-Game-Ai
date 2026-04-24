@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple
 
 
 def get_valid_moves(board: List[int], player_idx: int) -> List[Tuple[int, int]]:
+    #lay danh sach cac nuoc di hop le
     if player_idx == 0:
         indexes = range(1, 6)
     else:
@@ -11,6 +12,7 @@ def get_valid_moves(board: List[int], player_idx: int) -> List[Tuple[int, int]]:
 
 
 def simulate_move(curr_board: List[int], curr_scores: List[int], start_idx: int, direction: int, player_idx: int) -> Tuple[List[int], List[int]]:
+    #giong het ham apply_move nhung khong co hieu ung hien thi. Giup AI tinh toan nuoc di ma khong can ve lai ban co
     temp_b = curr_board.copy()
     temp_s = curr_scores.copy()
     actual_dir = direction if player_idx == 0 else -direction
@@ -64,12 +66,14 @@ def simulate_move(curr_board: List[int], curr_scores: List[int], start_idx: int,
 
 
 def _evaluate_position(board: List[int], scores: List[int]) -> float:
+    #tinh diem va danh gia trang thai ban co
     material_balance = sum(board[7:12]) - sum(board[1:6])
     return (scores[1] - scores[0]) + material_balance * 0.1
 
 
-@functools.lru_cache(maxsize=None)
+@functools.lru_cache(maxsize=None) #luu lai ket qua trang thai truoc do de khong tinh lai khi gap lai
 def _cached_minimax(board_tuple: tuple[int, ...], scores_tuple: tuple[int, int], depth: int, is_max: bool) -> Tuple[float, Optional[int], Optional[int]]:
+    #thuc hien tim kiem, cot loi cua minimax.
     board = list(board_tuple)
     scores = list(scores_tuple)
 
@@ -83,6 +87,7 @@ def _cached_minimax(board_tuple: tuple[int, ...], scores_tuple: tuple[int, int],
 
     best_move = (None, None)
     if is_max:
+        #neu true thi la luot cua AI
         max_eval = float("-inf")
         for start_idx, direction in moves:
             next_board, next_scores = simulate_move(board, scores, start_idx, direction, player_idx)
@@ -91,7 +96,7 @@ def _cached_minimax(board_tuple: tuple[int, ...], scores_tuple: tuple[int, int],
                 max_eval = eval_score
                 best_move = (start_idx, direction)
         return max_eval, best_move[0], best_move[1]
-
+    #else thi la luot cua nguoi choi
     min_eval = float("inf")
     for start_idx, direction in moves:
         next_board, next_scores = simulate_move(board, scores, start_idx, direction, player_idx)
@@ -103,4 +108,5 @@ def _cached_minimax(board_tuple: tuple[int, ...], scores_tuple: tuple[int, int],
 
 
 def minimax(board: List[int], scores: List[int], depth: int, alpha: float, beta: float, is_max: bool) -> Tuple[float, Optional[int], Optional[int]]:
+    #ham boc ben ngoai de chuyen data tu list sang tuple vi co the luu trong bo nho dem lru_cache
     return _cached_minimax(tuple(board), tuple(scores), depth, is_max)

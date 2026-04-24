@@ -4,19 +4,19 @@ from typing import List
 
 @dataclass
 class BoardState:
-    board: List[int]
-    score: List[int]
-    current_player: int = 0
-    selected_index: int = -1
-    current_hand_pos: int = -1
-    is_animating: bool = False
-    game_over: bool = False
+    board: List[int]#mang luu 12 o (0 va 6 la quan)
+    score: List[int]#mang luu diem cua 2 nguoi
+    current_player: int = 0#nguoi choi hien tai (0: player1 hoac 1: player2/AI)
+    selected_index: int = -1#vi tri o dang duoc chon
+    current_hand_pos: int = -1#vi tri o dang duoc rai quan
+    is_animating: bool = False#trang thai dang hoat anh // neu value=true -> nguoi choi khong click vao ban co
+    game_over: bool = False#trang thai ket thuc game
 
     @classmethod
-    def new(cls):
+    def new(cls): #method tao ra ban co 
         return cls([10, 5, 5, 5, 5, 5, 10, 5, 5, 5, 5, 5], [0, 0])
 
-    def reset(self):
+    def reset(self):  #reset trang thai ban co
         self.board = [10, 5, 5, 5, 5, 5, 10, 5, 5, 5, 5, 5]
         self.score = [0, 0]
         self.current_player = 0
@@ -25,12 +25,12 @@ class BoardState:
         self.is_animating = False
         self.game_over = False
 
-    def clone(self):
+    def clone(self):#tao ra ban sao cua trang thai de AI mo phong nuoc di trong tuong lai
         return BoardState(self.board.copy(), self.score.copy(), self.current_player,
                           self.selected_index, self.current_hand_pos,
                           self.is_animating, self.game_over)
 
-    def handle_empty_rows(self):
+    def handle_empty_rows(self):#kiem tra neu hang cua nguoi choi het dan thi se -5đ va rai 1 quan vao cac o
         if sum(self.board[1:6]) == 0 and (self.board[0] > 0 or self.board[6] > 0):
             self.score[0] -= 5
             for i in range(1, 6):
@@ -41,7 +41,7 @@ class BoardState:
             for i in range(7, 12):
                 self.board[i] = 1
 
-    def check_game_over(self) -> bool:
+    def check_game_over(self) -> bool:#kiem tra xem game ket thuc chua
         if self.board[0] == 0 and self.board[6] == 0:
             for i in range(1, 6):
                 self.score[0] += self.board[i]
@@ -53,7 +53,7 @@ class BoardState:
             return True
         return False
 
-    def apply_move(self, start_idx: int, direction: int, render_callback=None):
+    def apply_move(self, start_idx: int, direction: int, render_callback=None):#thuc hien nuoc di
         self.is_animating = True
         actual_dir = direction if self.current_player == 0 else -direction
         hand = self.board[start_idx]
@@ -72,13 +72,10 @@ class BoardState:
             # 1. Nếu hạt cuối rơi vào ô Quan (0 hoặc 6) -> Dừng lượt
             if pos in (0, 6):
                 break
-            
             next_pos = (pos + actual_dir) % 12
-            
             # 2. Nếu ô tiếp theo là ô Quan -> Dừng lượt (không được bốc quân từ ô Quan)
             if next_pos in (0, 6):
                 break
-            
             # 3. Phân nhánh: Ô tiếp theo có quân hay không?
             if self.board[next_pos] > 0:
                 # Bốc quân rải tiếp (vì không phải ô Quan và có quân)
