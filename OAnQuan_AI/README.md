@@ -6,10 +6,23 @@ Phiên bản `OAnQuan_AI` là một game Ô Ăn Quan với chế độ PvP và P
 
 1. Mở terminal tại thư mục `OAnQuan_AI`
 2. Tạo môi trường ảo (tuỳ chọn):
+
+   **2.1** Tạo môi trường ảo:
    ```bash
    python -m venv .venv
-   .\.venv\Scripts\activate
    ```
+
+   **2.2** Kích hoạt môi trường ảo:
+
+   - **Windows:**
+     ```bash
+     .\.venv\Scripts\activate
+     ```
+   - **macOS / Linux:**
+     ```bash
+     source .venv/bin/activate
+     ```
+
 3. Cài dependencies:
    ```bash
    pip install -r requirements.txt
@@ -22,10 +35,10 @@ Phiên bản `OAnQuan_AI` là một game Ô Ăn Quan với chế độ PvP và P
 ## Chức năng
 
 - Menu chính: chọn `NGƯỜI VS NGƯỜI`, `NGƯỜI VS MÁY`, hoặc `LUẬT CHƠI`
-- Chế độ chọn độ khó cho AI
+- Chế độ chọn độ khó cho AI (Easy / Medium / Hard)
 - Game PvP và PvE
 - Giao diện với nút chọn hướng và hiển thị điểm
-- Âm thanh nền và hiệu ứng đi quân
+- Âm thanh nền và hiệu ứng đi quân (có thể tuỳ chỉnh trong Settings)
 
 ## Cấu trúc
 
@@ -36,6 +49,7 @@ Phiên bản `OAnQuan_AI` là một game Ô Ăn Quan với chế độ PvP và P
 - `src/ai_engine.py`: lựa chọn nước đi cho máy
 - `src/renderer.py`: vẽ giao diện và font cache
 - `src/audio.py`: khởi tạo âm thanh và phát hiệu ứng
+- `src/utils.py`: hàm tiện ích lấy đường dẫn tài nguyên
 
 ## Kiểm thử
 

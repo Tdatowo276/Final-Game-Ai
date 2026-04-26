@@ -26,9 +26,6 @@ def simulate_move(curr_board: List[int], curr_scores: List[int], start_idx: int,
         hand -= 1
 
     while True:
-        if pos in (0, 6):
-            break
-
         next_pos = (pos + actual_dir) % 12
         
         if next_pos in (0, 6):

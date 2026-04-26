@@ -87,7 +87,7 @@ def main():
         if game_state == 0:
             screen.fill(BG_COLOR)
             width = screen.get_width()
-            title = font_menu_title.render("O AN QUAN AI", True, (80, 70, 60))
+            title = font_menu_title.render("O AN QUAN", True, (80, 70, 60))
             screen.blit(title, (width // 2 - title.get_width() // 2, 150))
             if draw_button(screen, "PLAYER VS PLAYER", width // 2 - 150, 270, 300, 60, (120, 110, 100), (180, 170, 160)):
                 is_pvp = True

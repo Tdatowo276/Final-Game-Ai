@@ -21,11 +21,8 @@ def test_handle_empty_rows_adds_seeds_and_penalty():
 
 
 def test_check_game_over_collects_remaining_seeds():
-    state = BoardState.new()
-    state.board[0] = 0
-    state.board[6] = 0
-    state.board[1] = 2
-    state.board[7] = 3
+    # Tạo trạng thái chỉ có quân ở ô 1 và ô 7, 2 ô quan = 0
+    state = BoardState([0, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0], [0, 0])
 
     ended = state.check_game_over()
     assert ended is True
@@ -37,11 +34,15 @@ def test_check_game_over_collects_remaining_seeds():
 
 
 def test_apply_move_captures_after_empty_cell():
-    state = BoardState.new()
-    state.board = [10, 1, 0, 0, 3, 0, 10, 0, 0, 0, 0, 0]
+    # Board: ô 1 có 1 quân, ô 2,3 trống, ô 4 có 3 quân, ô 0,6 là quan
+    state = BoardState([10, 1, 0, 0, 3, 0, 10, 0, 0, 0, 0, 0], [0, 0])
     state.current_player = 0
     state.apply_move(1, 1)
 
-    assert state.score[0] == 3
+    # Rải 1 quân từ ô 1 theo hướng +1: ô 2 nhận 1 quân
+    # Ô tiếp (3) trống -> kiểm tra ô sau (4) có 3 quân -> ăn 3 quân
+    # Ô tiếp (5) trống -> kiểm tra ô sau (6) có 10 quân (ô Quan) -> ăn 10 quân
+    # Ô tiếp (7) trống -> kiểm tra ô sau (8) trống -> dừng
+    assert state.score[0] == 13
     assert state.board[4] == 0
-    assert state.current_player == 1
+    assert state.board[6] == 0

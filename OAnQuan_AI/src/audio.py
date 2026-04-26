@@ -1,5 +1,6 @@
 import pygame
 from pathlib import Path
+from src.utils import get_resource_path
 
 _sound_effects = []
 _bgm = None
@@ -26,7 +27,8 @@ def init_audio():
     except Exception:
         return
 
-    sound_folder = Path(__file__).resolve().parent.parent / "assets" / "sound"
+    # Use get_resource_path to find assets even when bundled
+    sound_folder = Path(get_resource_path("assets/sound"))
     
     # Load BGM
     bgm_path = sound_folder / "bgm.mp3"

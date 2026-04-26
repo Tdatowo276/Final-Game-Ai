@@ -69,9 +69,6 @@ class BoardState:
                 render_callback()
 
         while True:
-            # 1. Nếu hạt cuối rơi vào ô Quan (0 hoặc 6) -> Dừng lượt
-            if pos in (0, 6):
-                break
             next_pos = (pos + actual_dir) % 12
             # 2. Nếu ô tiếp theo là ô Quan -> Dừng lượt (không được bốc quân từ ô Quan)
             if next_pos in (0, 6):
