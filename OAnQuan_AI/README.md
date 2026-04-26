@@ -2,6 +2,15 @@
 
 Phiên bản `OAnQuan_AI` là một game Ô Ăn Quan với chế độ PvP và PvE, dùng Pygame cho giao diện và Minimax cho AI.
 
+## Yêu cầu hệ thống
+
+| Yêu cầu | Chi tiết |
+| **Python** | 3.10 trở lên |
+| **pip** | Đi kèm Python (phiên bản bất kỳ) |
+| **Hệ điều hành** | Windows / macOS / Linux (cần giao diện đồ họa desktop) |
+| **Font hệ thống** | Arial, Verdana (Windows/macOS có sẵn. Linux: `sudo apt install fonts-liberation`) |
+| **Âm thanh** | Loa hoặc tai nghe (tuỳ chọn — game vẫn chạy nếu không có) |
+
 ## Chạy game
 
 1. Mở terminal tại thư mục `OAnQuan_AI`
